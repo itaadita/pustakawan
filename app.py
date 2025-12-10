@@ -6,15 +6,38 @@ import gspread
 # -----------------------------------------------------------
 # KONFIGURASI HALAMAN
 # -----------------------------------------------------------
-st.set_page_config(page_title="Monitoring Progres Pustakawan", layout="centered")
+st.set_page_config(page_title="Monitoring Progres Usul Jabatan Fungsional Pustakawan", layout="centered")
 
+# -----------------------------------------------------------
+# HEADER KEMENAG (SAMA DENGAN SURAT MUTASI)
+# -----------------------------------------------------------
+col1, col2 = st.columns([0.7, 4.3])
+with col1:
+    st.image("assets/kemenag.png", width=70)
+
+with col2:
+    st.markdown("""
+        <div style="text-align:left; margin-left:0px;">
+            <p style="margin:0; font-size:20px; font-weight:bold;">
+                KEMENTERIAN AGAMA REPUBLIK INDONESIA
+            </p>
+            <p style="margin:0; font-size:18px;">
+                DIREKTORAT JENDERAL PENDIDIKAN ISLAM
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+
+# -----------------------------------------------------------
+# TITLE UTAMA (DIBUAT SAMA SEPERTI MUTASI)
+# -----------------------------------------------------------
 st.markdown("""
-<div style="text-align:center; margin-top:20px;">
-    <h2 style="color:#2c3e50;">📄 Monitoring Progres Dokumen Pustakawan</h2>
-    <p style="font-size:16px; color:#34495e;">
-        Masukkan <b>NIP</b> untuk melihat progres dokumen penilaian jabatan fungsional pustakawan.
-    </p>
-</div>
+    <div style="text-align:center; margin-top:40px;">
+        <h2 style="color:#2c3e50;">📄 Monitoring Progres Dokumen Pustakawan</h2>
+        <p style="font-size:16px; color:#34495e; margin-top:20px;">
+            Masukkan <b>NIP</b> Anda untuk melakukan pencarian progres <br>
+            <strong>MOnitoring Usul Dokumen JF Pustakawan</strong>.
+        </p>
+    </div>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------
@@ -38,16 +61,15 @@ data = worksheet.get_all_records()
 df = pd.DataFrame(data)
 
 # -----------------------------------------------------------
-# DASHBOARD AWAL — INPUT NIP
+# INPUT PENCARIAN
 # -----------------------------------------------------------
 col1, col2, col3 = st.columns([1,3,1])
 with col2:
-    nip_input = st.text_input("Contoh: 198765432019032001", label_visibility="collapsed")
+    nip_input = st.text_input("Contoh: 198701012000011001", label_visibility="collapsed")
     btn = st.button("🔍 Lacak")
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# Jika belum menekan tombol → berhenti di sini
 if not btn:
     st.stop()
 
@@ -61,20 +83,20 @@ if not nip_input.isdigit() or len(nip_input) != 18:
     st.stop()
 
 # -----------------------------------------------------------
-# CEK DATA BERDASARKAN NIP
+# CEK DATA
 # -----------------------------------------------------------
 hasil = df[df["NIP"].astype(str).str.strip() == nip_input]
 
 if hasil.empty:
-    st.warning("❗ Data tidak ditemukan.")
+    st.warning("❗ Tidak ditemukan data usul untuk NIP ini. Silakan cek kembali atau konfirmasi ke Satker Pengusul.")
     st.stop()
 
 row = hasil.iloc[0]
 
 # -----------------------------------------------------------
-# DETAIL DATA
+# DETAIL DATA (DIBUAT SERUPA MUTASI)
 # -----------------------------------------------------------
-st.subheader("📌 Detail Dokumen")
+st.subheader("📌 Hasil Pencarian:")
 st.write(f"**Nama:** {row['Nama']}")
 st.write(f"**NIP:** {row['NIP']}")
 st.write(f"**Unit Kerja:** {row['Unit Kerja']}")
@@ -83,9 +105,8 @@ st.write(f"**Jabatan Baru:** {row['Jabatan Baru']}")
 st.write(f"**Jenis:** {row['Jenis']}")
 
 # -----------------------------------------------------------
-# TENTUKAN PROGRESS STEP OTOMATIS
+# HITUNG STEP PROGRES
 # -----------------------------------------------------------
-
 if str(row["Keterangan"]).lower() == "true":
     progress_step = 4
 elif str(row["Progress 2"]).strip():
@@ -96,11 +117,11 @@ else:
     progress_step = 1
 
 # -----------------------------------------------------------
-# LOGIKA TEKS SETIAP STEP
+# TEKS MURNI SETIAP STEP
 # -----------------------------------------------------------
 # Step 1
 if progress_step >= 1:
-    step1_text = "Disposisi Setditjen Pendis dan Verifikasi Validasi Berkas sudah selesai"
+    step1_text = "Disposisi dan Verifikasi Validasi Berkas sudah selesai"
 else:
     step1_text = "Menunggu Disposisi Sekretaris Ditjen Pendis dan Proses Verifikasi Validasi Berkas"
 
@@ -112,33 +133,32 @@ else:
 
 # Step 3
 if progress_step >= 3:
-    step3_text = "Surat Rekomendasi dan Berkas usul sudah diterima oleh Biro SDM - Setjen Kementerian Agama"
+    step3_text = "Berkas sudah diterima oleh Biro SDM - Setjen Kemenag"
 else:
-    step3_text = "Menunggu Berkas diterima oleh Biro SDM"
+    step3_text = "Menunggu berkas diterima Biro SDM"
 
 # Step 4
 if progress_step == 4:
-    step4_text = "Semua Proses sudah selesai oleh Subtim Kepegawaian - TIM OKH Ditjen Pendis"
+    step4_text = "Semua proses selesai oleh Subtim Kepegawaian - Tim OKH"
 else:
     step4_text = "Menunggu seluruh proses selesai"
 
 # -----------------------------------------------------------
-# STYLE CARD ELEGAN (HIJAU / KUNING)
+# STYLE CARD (HIJAU / KUNING)
 # -----------------------------------------------------------
-
 def card_style(step):
     if progress_step >= step:
-        return "background-color:#d4edda; border-left:6px solid #28a745;"   # DONE
+        return "background-color:#d4edda; border-left:6px solid #28a745;"
     else:
-        return "background-color:#fff3cd; border-left:6px solid #ffc107;"   # PROGRESS
+        return "background-color:#fff3cd; border-left:6px solid #ffc107;"
 
 # -----------------------------------------------------------
-# TAMPILKAN TIMELINE
+# TIMELINE (TAMPILAN SAMA MUTASI, KONTEN MILIK PUSTAKAWAN)
 # -----------------------------------------------------------
-st.subheader("🕒 Timeline Proses Dokumen")
+st.markdown("### 🧭 Timeline Proses Dokumen")
 st.markdown("---")
 
-# Step 1
+# Step 1 (tanpa tanggal)
 st.markdown(f"""
 <div style="{card_style(1)} padding:15px; margin-bottom:10px; border-radius:10px;">
 <b>Step 1:</b><br>{step1_text}
@@ -167,4 +187,13 @@ st.markdown(f"""
 <b>Step 4:</b><br>{step4_text}<br>
 📅 {"✔️" if progress_step == 4 else "-"}
 </div>
+""", unsafe_allow_html=True)
+
+# -----------------------------------------------------------
+# FOOTER SAMA MUTASI
+# -----------------------------------------------------------
+st.markdown("""
+    <div style="text-align: center; font-size: 13px; color: gray; margin-top:25px;">
+        Diberdayakan oleh: <b>Tim Kerja OKH - Sekretariat Direktorat Jenderal Pendidikan Islam</b>
+    </div>
 """, unsafe_allow_html=True)
