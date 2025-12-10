@@ -102,7 +102,7 @@ else:
 if progress_step >= 1:
     step1_text = "Disposisi Setditjen Pendis dan Verifikasi Validasi Berkas sudah selesai"
 else:
-    step1_text = "Menunggu Disposisi Sekretaris Ditjen Pendis"
+    step1_text = "Menunggu Disposisi Sekretaris Ditjen Pendis dan Proses Verifikasi Validasi Berkas"
 
 # Step 2
 if progress_step >= 2:
@@ -141,8 +141,7 @@ st.markdown("---")
 # Step 1
 st.markdown(f"""
 <div style="{card_style(1)} padding:15px; margin-bottom:10px; border-radius:10px;">
-<b>Step 1:</b><br>{step1_text}<br>
-📅 {row["Progress 0"] if "Progress 0" in row and row["Progress 0"] else "-"}
+<b>Step 1:</b><br>{step1_text}
 </div>
 """, unsafe_allow_html=True)
 
