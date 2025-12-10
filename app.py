@@ -6,36 +6,34 @@ import gspread
 # -----------------------------------------------------------
 # KONFIGURASI HALAMAN
 # -----------------------------------------------------------
-st.set_page_config(page_title="Monitoring Progres Usul Jabatan Fungsional Pustakawan", layout="centered")
+st.set_page_config(
+    page_title="Monitoring Progres Usul Jabatan Fungsional Pustakawan",
+    layout="centered"
+)
 
 # -----------------------------------------------------------
-# HEADER KEMENAG (SAMA DENGAN SURAT MUTASI)
+# HEADER KEMENAG (TANPA LOGO, HANYA TEKS)
 # -----------------------------------------------------------
-col1, col2 = st.columns([0.7, 4.3])
-with col1:
-    st.image("assets/kemenag.png", width=70)
-
-with col2:
-    st.markdown("""
-        <div style="text-align:left; margin-left:0px;">
-            <p style="margin:0; font-size:20px; font-weight:bold;">
-                KEMENTERIAN AGAMA REPUBLIK INDONESIA
-            </p>
-            <p style="margin:0; font-size:18px;">
-                DIREKTORAT JENDERAL PENDIDIKAN ISLAM
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
+st.markdown("""
+    <div style="text-align:left; margin-left:0px;">
+        <p style="margin:0; font-size:20px; font-weight:bold;">
+            KEMENTERIAN AGAMA REPUBLIK INDONESIA
+        </p>
+        <p style="margin:0; font-size:18px;">
+            DIREKTORAT JENDERAL PENDIDIKAN ISLAM
+        </p>
+    </div>
+""", unsafe_allow_html=True)
 
 # -----------------------------------------------------------
-# TITLE UTAMA (DIBUAT SAMA SEPERTI MUTASI)
+# TITLE UTAMA
 # -----------------------------------------------------------
 st.markdown("""
     <div style="text-align:center; margin-top:40px;">
         <h2 style="color:#2c3e50;">📄 Monitoring Progres Dokumen Pustakawan</h2>
         <p style="font-size:16px; color:#34495e; margin-top:20px;">
             Masukkan <b>NIP</b> Anda untuk melakukan pencarian progres <br>
-            <strong>MOnitoring Usul Dokumen JF Pustakawan</strong>.
+            <strong>Monitoring Usul Dokumen JF Pustakawan</strong>.
         </p>
     </div>
 """, unsafe_allow_html=True)
@@ -43,8 +41,10 @@ st.markdown("""
 # -----------------------------------------------------------
 # GOOGLE SHEET CONNECTION
 # -----------------------------------------------------------
-scope = ["https://www.googleapis.com/auth/spreadsheets",
-         "https://www.googleapis.com/auth/drive"]
+scope = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
 
 creds = Credentials.from_service_account_info(
     st.secrets["gcp_service_account"],
@@ -74,7 +74,7 @@ if not btn:
     st.stop()
 
 # -----------------------------------------------------------
-# VALIDASI INPUT
+# VALIDASI NIP
 # -----------------------------------------------------------
 nip_input = nip_input.strip()
 
@@ -94,7 +94,7 @@ if hasil.empty:
 row = hasil.iloc[0]
 
 # -----------------------------------------------------------
-# DETAIL DATA (DIBUAT SERUPA MUTASI)
+# DETAIL DATA
 # -----------------------------------------------------------
 st.subheader("📌 Hasil Pencarian:")
 st.write(f"**Nama:** {row['Nama']}")
@@ -117,7 +117,7 @@ else:
     progress_step = 1
 
 # -----------------------------------------------------------
-# TEKS MURNI SETIAP STEP
+# TEKS SETIAP STEP (OTOMATIS SESUAI PROGRES)
 # -----------------------------------------------------------
 # Step 1
 if progress_step >= 1:
@@ -144,7 +144,7 @@ else:
     step4_text = "Menunggu seluruh proses selesai"
 
 # -----------------------------------------------------------
-# STYLE CARD (HIJAU / KUNING)
+# STYLE CARD
 # -----------------------------------------------------------
 def card_style(step):
     if progress_step >= step:
@@ -153,7 +153,7 @@ def card_style(step):
         return "background-color:#fff3cd; border-left:6px solid #ffc107;"
 
 # -----------------------------------------------------------
-# TIMELINE (TAMPILAN SAMA MUTASI, KONTEN MILIK PUSTAKAWAN)
+# TIMELINE
 # -----------------------------------------------------------
 st.markdown("### 🧭 Timeline Proses Dokumen")
 st.markdown("---")
@@ -190,7 +190,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------
-# FOOTER SAMA MUTASI
+# FOOTER
 # -----------------------------------------------------------
 st.markdown("""
     <div style="text-align: center; font-size: 13px; color: gray; margin-top:25px;">
