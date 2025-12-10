@@ -7,7 +7,15 @@ import gspread
 # KONFIGURASI HALAMAN
 # -----------------------------------------------------------
 st.set_page_config(page_title="Monitoring Progres Pustakawan", layout="centered")
-st.title("📄 Monitoring Progres Dokumen Pustakawan")
+
+st.markdown("""
+<div style="text-align:center; margin-top:20px;">
+    <h2 style="color:#2c3e50;">📄 Monitoring Progres Dokumen Pustakawan</h2>
+    <p style="font-size:16px; color:#34495e;">
+        Masukkan <b>NIP</b> untuk melihat progres dokumen penilaian jabatan fungsional pustakawan.
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
 # -----------------------------------------------------------
 # GOOGLE SHEET CONNECTION
@@ -34,13 +42,12 @@ df = pd.DataFrame(data)
 # -----------------------------------------------------------
 # DASHBOARD AWAL — INPUT NIP
 # -----------------------------------------------------------
-st.markdown("""
-### 🔍 Cari Progres Dokumen
-Masukkan **NIP Anda** untuk melihat status terbaru.
-""")
+col1, col2, col3 = st.columns([1,3,1])
+with col2:
+    nip_input = st.text_input("Contoh: 198765432019032001", label_visibility="collapsed")
+    btn = st.button("🔍 Lacak")
 
-nip_input = st.text_input("Masukkan NIP (18 digit)", max_chars=18)
-btn = st.button("🔎 Cari")
+st.markdown("<hr>", unsafe_allow_html=True)
 
 # Jika belum menekan tombol → berhenti di sini
 if not btn:
@@ -61,17 +68,15 @@ if not nip_input.isdigit() or len(nip_input) != 18:
 hasil = df[df["NIP"].astype(str).str.strip() == nip_input]
 
 if hasil.empty:
-    st.warning("❗ Data tidak ditemukan. Usulan belum masuk atau NIP salah.")
+    st.warning("❗ Data tidak ditemukan.")
     st.stop()
 
 # Ambil baris pertama
 row = hasil.iloc[0]
 
 # -----------------------------------------------------------
-# HALAMAN 2 — DETAIL DATA
+# DETAIL DATA
 # -----------------------------------------------------------
-st.success("Data ditemukan! Berikut detailnya:")
-
 st.subheader("📌 Detail Dokumen")
 st.write(f"**Nama:** {row['Nama']}")
 st.write(f"**NIP:** {row['NIP']}")
@@ -96,18 +101,75 @@ st.subheader("📍 Status Terakhir")
 st.info(status_terakhir)
 
 # -----------------------------------------------------------
-# TIMELINE SHOPEE
+# TIMELINE STYLE SHOPEE (VERSI SURAT MUTASI)
 # -----------------------------------------------------------
-st.subheader("🕒 Timeline Progres (Style Shopee)")
 
-def timeline_item(title, date_text, active=False):
-    color = "#10A37F" if active else "#BBBBBB"
-    dot = f"<div style='width:14px;height:14px;border-radius:50%;background:{color};display:inline-block;margin-right:10px;'></div>"
-    text = f"<span style='font-size:16px;font-weight:600'>{title}</span>"
-    date = f"<div style='font-size:13px;color:#666;margin-left:24px'>{date_text}</div>" if date_text else ""
-    st.markdown(dot + text + date, unsafe_allow_html=True)
+st.markdown("""
+<style>
+.timeline {
+    border-left: 3px solid #3498db;
+    margin-left: 20px;
+    padding-left: 20px;
+}
+.entry {
+    margin-bottom: 18px;
+    position: relative;
+}
+.entry:before {
+    content: "●";
+    position: absolute;
+    left: -23px;
+    font-size: 18px;
+    color: #3498db;
+}
+.done:before {
+    color: #2ecc71;
+}
+</style>
+""", unsafe_allow_html=True)
 
-timeline_item("Menunggu Disposisi Sekretaris Ditjen Pendis", "", active=(status_terakhir.startswith("Menunggu")))
-timeline_item("Proses TTE oleh Pimpinan", row['Progress 1'], active=("TTE" in status_terakhir))
-timeline_item("Diterima Biro SDM", row['Progress 2'], active=("Biro SDM" in status_terakhir))
-timeline_item("Selesai", "✔️", active=("Selesai" in status_terakhir))
+st.subheader("🕒 Timeline Proses Dokumen")
+
+def add_step(step_no, title, date_text, active=False):
+    status_class = "done" if active else "progress"
+    emoji = "✅" if active else "⏳"
+
+    html = (
+        f"<div class='entry {status_class}'>"
+        f"<b>Step {step_no}:</b> {title} {emoji}<br>"
+        f"📅 {date_text if date_text else '-'}"
+        "</div>"
+    )
+    st.markdown(html, unsafe_allow_html=True)
+
+# Step 1
+add_step(
+    1,
+    "Menunggu Disposisi Sekretaris Ditjen Pendis",
+    "-",
+    active=status_terakhir.startswith("Menunggu")
+)
+
+# Step 2
+add_step(
+    2,
+    "Proses TTE oleh Pimpinan",
+    row['Progress 1'],
+    active=("TTE" in status_terakhir)
+)
+
+# Step 3
+add_step(
+    3,
+    "Diterima Biro SDM",
+    row['Progress 2'],
+    active=("Biro SDM" in status_terakhir)
+)
+
+# Step 4
+add_step(
+    4,
+    "Selesai",
+    "✔️",
+    active=("Selesai" in status_terakhir)
+)
