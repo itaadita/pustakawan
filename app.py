@@ -1,23 +1,24 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 import gspread
 
 st.set_page_config(page_title="Monitoring Progres Pustakawan", layout="wide")
 st.title("📄 Monitoring Progres Dokumen Pustakawan")
 
-# --- Google Sheet Connection ----------------------------------------------
-scope = [
-    "https://spreadsheets.google.com/feeds",
-    "https://www.googleapis.com/auth/drive"
-]
+# --- Google Sheet Connection (VERSI BARU) ---------------------------------
+scope = ["https://www.googleapis.com/auth/spreadsheets",
+         "https://www.googleapis.com/auth/drive"]
 
-creds_dict = st.secrets["gcp_service_account"]   # Ambil dari Streamlit Secrets
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+creds = Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"],
+    scopes=scope
+)
+
 client = gspread.authorize(creds)
 
-# --- DEBUG TEST (WAJIB) ----------------------------------------------------
+# --- DEBUG TEST ------------------------------------------------------------
 try:
     st.write("🔍 Mengakses Spreadsheet...")
     spreadsheet = client.open("Data Pegawai")
@@ -38,7 +39,7 @@ except Exception as e:
     st.code(str(e))
     st.stop()
 
-# Konversi tanggal otomatis (jika ada)
+# Konversi kolom tanggal
 for col in ["Progress 1", "Progress 2"]:
     if col in df.columns:
         df[col] = df[col].astype(str)
@@ -57,11 +58,11 @@ st.write(f"**Jabatan Baru:** {row['Jabatan Baru']}")
 st.write(f"**Jenis:** {row['Jenis']}")
 
 # --- Status Terakhir ------------------------------------------------------
-if row['Keterangan'] == True or str(row['Keterangan']).lower() == 'true':
+if str(row['Keterangan']).lower() == 'true':
     status_terakhir = "Selesai ✔️"
-elif pd.notna(row["Progress 2"]) and row["Progress 2"].strip() != "":
+elif row["Progress 2"].strip():
     status_terakhir = "Diterima Biro SDM"
-elif pd.notna(row["Progress 1"]) and row["Progress 1"].strip() != "":
+elif row["Progress 1"].strip():
     status_terakhir = "Proses TTE Pimpinan"
 else:
     status_terakhir = "Menunggu Disposisi Sekretaris Ditjen Pendis"
