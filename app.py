@@ -17,10 +17,26 @@ creds_dict = st.secrets["gcp_service_account"]   # Ambil dari Streamlit Secrets
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
-# --- Baca Google Sheet -----------------------------------------------------
-sheet = client.open("Data Pegawai").worksheet("Sheet1")  
-data = sheet.get_all_records()
-df = pd.DataFrame(data)
+# --- DEBUG TEST (WAJIB) ----------------------------------------------------
+try:
+    st.write("🔍 Mengakses Spreadsheet...")
+    spreadsheet = client.open("Data Pegawai")
+    st.success("Spreadsheet ditemukan!")
+except Exception as e:
+    st.error("❌ Gagal membuka Spreadsheet. Periksa nama & akses!")
+    st.code(str(e))
+    st.stop()
+
+# --- Baca Worksheet --------------------------------------------------------
+try:
+    sheet = spreadsheet.worksheet("Pemetaan Kebutuhan Jabfung PUSTAKAWAN")
+    data = sheet.get_all_records()
+    df = pd.DataFrame(data)
+    st.success("Worksheet berhasil dibaca!")
+except Exception as e:
+    st.error("❌ Gagal membaca Worksheet. Periksa nama worksheet!")
+    st.code(str(e))
+    st.stop()
 
 # Konversi tanggal otomatis (jika ada)
 for col in ["Progress 1", "Progress 2"]:
@@ -63,7 +79,6 @@ def timeline_item(title, date_text, active=False):
     date = f"<div style='font-size:13px;color:#666;margin-left:24px'>{date_text}</div>" if date_text else ""
     st.markdown(dot + text + date, unsafe_allow_html=True)
 
-# Timeline order seperti Shopee
 timeline_item("Menunggu Disposisi Sekretaris Ditjen Pendis", "", active=(status_terakhir.startswith("Menunggu")))
 timeline_item("Proses TTE oleh Pimpinan", row['Progress 1'], active=("TTE" in status_terakhir))
 timeline_item("Diterima Biro SDM", row['Progress 2'], active=("Biro SDM" in status_terakhir))
