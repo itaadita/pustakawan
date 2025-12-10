@@ -21,7 +21,12 @@ client = gspread.authorize(creds)
 # --- DEBUG TEST ------------------------------------------------------------
 try:
     st.write("🔍 Mengakses Spreadsheet...")
-    sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1giPSg_pVhAp-2UlLtBDGaO-DiCGZCxDvOmG7Fm09am0/edit?gid=1870840320#gid=1870840320")
+    
+    # Membuka FILE Google Spreadsheet
+    sheet = client.open_by_url(
+        "https://docs.google.com/spreadsheets/d/1giPSg_pVhAp-2UlLtBDGaO-DiCGZCxDvOmG7Fm09am0/edit?usp=sharing"
+    )
+    
     st.success("Spreadsheet ditemukan!")
 except Exception as e:
     st.error("❌ Gagal membuka Spreadsheet. Periksa nama & akses!")
@@ -30,10 +35,15 @@ except Exception as e:
 
 # --- Baca Worksheet --------------------------------------------------------
 try:
-    sheet = spreadsheet.worksheet("Pemetaan Kebutuhan Jabfung PUSTAKAWAN")
-    data = sheet.get_all_records()
+    # Membuka TAB bernama 'datapegawai'
+    worksheet = sheet.worksheet("datapegawai")
+    
+    # Ambil semua data
+    data = worksheet.get_all_records()
     df = pd.DataFrame(data)
+    
     st.success("Worksheet berhasil dibaca!")
+
 except Exception as e:
     st.error("❌ Gagal membaca Worksheet. Periksa nama worksheet!")
     st.code(str(e))
