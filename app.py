@@ -1,13 +1,17 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 from google.oauth2.service_account import Credentials
 import gspread
 
-st.set_page_config(page_title="Monitoring Progres Pustakawan", layout="wide")
+# -----------------------------------------------------------
+# KONFIGURASI HALAMAN
+# -----------------------------------------------------------
+st.set_page_config(page_title="Monitoring Progres Pustakawan", layout="centered")
 st.title("📄 Monitoring Progres Dokumen Pustakawan")
 
-# --- Google Sheet Connection (VERSI BARU) ---------------------------------
+# -----------------------------------------------------------
+# GOOGLE SHEET CONNECTION
+# -----------------------------------------------------------
 scope = ["https://www.googleapis.com/auth/spreadsheets",
          "https://www.googleapis.com/auth/drive"]
 
@@ -15,50 +19,59 @@ creds = Credentials.from_service_account_info(
     st.secrets["gcp_service_account"],
     scopes=scope
 )
-
 client = gspread.authorize(creds)
 
-# --- DEBUG TEST ------------------------------------------------------------
-try:
-    st.write("🔍 Mengakses Spreadsheet...")
-    
-    # Membuka FILE Google Spreadsheet
-    sheet = client.open_by_url(
-        "https://docs.google.com/spreadsheets/d/1giPSg_pVhAp-2UlLtBDGaO-DiCGZCxDvOmG7Fm09am0/edit?usp=sharing"
-    )
-    
-    st.success("Spreadsheet ditemukan!")
-except Exception as e:
-    st.error("❌ Gagal membuka Spreadsheet. Periksa nama & akses!")
-    st.code(str(e))
+# Buka Spreadsheet
+sheet = client.open_by_url(
+    "https://docs.google.com/spreadsheets/d/1giPSg_pVhAp-2UlLtBDGaO-DiCGZCxDvOmG7Fm09am0/edit?usp=sharing"
+)
+
+# Buka TAB
+worksheet = sheet.worksheet("datapegawai")
+data = worksheet.get_all_records()
+df = pd.DataFrame(data)
+
+# -----------------------------------------------------------
+# DASHBOARD AWAL — INPUT NIP
+# -----------------------------------------------------------
+st.markdown("""
+### 🔍 Cari Progres Dokumen
+Masukkan **NIP Anda** untuk melihat status terbaru.
+""")
+
+nip_input = st.text_input("Masukkan NIP (18 digit)", max_chars=18)
+btn = st.button("🔎 Cari")
+
+# Jika belum menekan tombol → berhenti di sini
+if not btn:
     st.stop()
 
-# --- Baca Worksheet --------------------------------------------------------
-try:
-    # Membuka TAB bernama 'datapegawai'
-    worksheet = sheet.worksheet("datapegawai")
-    
-    # Ambil semua data
-    data = worksheet.get_all_records()
-    df = pd.DataFrame(data)
-    
-    st.success("Worksheet berhasil dibaca!")
+# -----------------------------------------------------------
+# VALIDASI INPUT
+# -----------------------------------------------------------
+nip_input = nip_input.strip()
 
-except Exception as e:
-    st.error("❌ Gagal membaca Worksheet. Periksa nama worksheet!")
-    st.code(str(e))
+if not nip_input.isdigit() or len(nip_input) != 18:
+    st.error("⚠️ NIP harus 18 digit numerik.")
     st.stop()
 
-# Konversi kolom tanggal
-for col in ["Progress 1", "Progress 2"]:
-    if col in df.columns:
-        df[col] = df[col].astype(str)
+# -----------------------------------------------------------
+# CEK DATA BERDASARKAN NIP
+# -----------------------------------------------------------
+hasil = df[df["NIP"].astype(str).str.strip() == nip_input]
 
-# Pilih nama
-selected_name = st.selectbox("Pilih Nama", df["Nama"].tolist())
-row = df[df["Nama"] == selected_name].iloc[0]
+if hasil.empty:
+    st.warning("❗ Data tidak ditemukan. Usulan belum masuk atau NIP salah.")
+    st.stop()
 
-# --- Menampilkan Detail -------------------------------------------------
+# Ambil baris pertama
+row = hasil.iloc[0]
+
+# -----------------------------------------------------------
+# HALAMAN 2 — DETAIL DATA
+# -----------------------------------------------------------
+st.success("Data ditemukan! Berikut detailnya:")
+
 st.subheader("📌 Detail Dokumen")
 st.write(f"**Nama:** {row['Nama']}")
 st.write(f"**NIP:** {row['NIP']}")
@@ -67,7 +80,9 @@ st.write(f"**Jabatan Lama:** {row['Jabatan Lama']}")
 st.write(f"**Jabatan Baru:** {row['Jabatan Baru']}")
 st.write(f"**Jenis:** {row['Jenis']}")
 
-# --- Status Terakhir ------------------------------------------------------
+# -----------------------------------------------------------
+# LOGIKA STATUS TERAKHIR
+# -----------------------------------------------------------
 if str(row['Keterangan']).lower() == 'true':
     status_terakhir = "Selesai ✔️"
 elif row["Progress 2"].strip():
@@ -80,7 +95,9 @@ else:
 st.subheader("📍 Status Terakhir")
 st.info(status_terakhir)
 
-# --- Timeline Shopee Style -----------------------------------------------
+# -----------------------------------------------------------
+# TIMELINE SHOPEE
+# -----------------------------------------------------------
 st.subheader("🕒 Timeline Progres (Style Shopee)")
 
 def timeline_item(title, date_text, active=False):
