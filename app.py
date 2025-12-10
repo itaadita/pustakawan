@@ -21,7 +21,7 @@ client = gspread.authorize(creds)
 # --- DEBUG TEST ------------------------------------------------------------
 try:
     st.write("🔍 Mengakses Spreadsheet...")
-    spreadsheet = client.open("Data Pegawai")
+    sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1giPSg_pVhAp-2UlLtBDGaO-DiCGZCxDvOmG7Fm09am0/edit?gid=1870840320#gid=1870840320")
     st.success("Spreadsheet ditemukan!")
 except Exception as e:
     st.error("❌ Gagal membuka Spreadsheet. Periksa nama & akses!")
