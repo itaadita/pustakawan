@@ -121,7 +121,7 @@ else:
 # -----------------------------------------------------------
 # Step 1
 if progress_step >= 1:
-    step1_text = "Disposisi dan Verifikasi Validasi Berkas sudah selesai"
+    step1_text = "Disposisi dan Verifikasi Validasi Berkas"
 else:
     step1_text = "Menunggu Disposisi Sekretaris Ditjen Pendis dan Proses Verifikasi Validasi Berkas"
 
