@@ -127,7 +127,7 @@ else:
 
 # Step 2
 if progress_step >= 2:
-    step2_text = "Surat Rekomendasi sudah selesai di TTE oleh pimpinan"
+    step2_text = "Proses TTE Surat Rekomendasi oleh pimpinan"
 else:
     step2_text = "Proses TTE Surat Rekomendasi oleh pimpinan"
 
